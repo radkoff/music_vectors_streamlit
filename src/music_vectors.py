@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 import altair as alt
 import numpy as np
@@ -11,10 +12,13 @@ from sklearn.neighbors import KDTree
 import streamlit as st
 import umap
 
+project_root = Path(__file__).parent.parent
+if project_root.as_posix() not in sys.path:
+    sys.path.append(project_root.as_posix())
+
 from src import rym_descriptors, utils
 
-here = Path(__file__).parent
-EMB_PATH = here / '../data/blog_music_vectors.pkl'
+EMB_PATH = project_root / 'data/blog_music_vectors.pkl'
 RANDOM_STATE = 0
 
 essentia_col_names = [
