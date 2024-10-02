@@ -177,11 +177,11 @@ if st.query_params.get('skip_data_sources', False):
     data_sources = ['Genre Classification Embeddings']
 else:
     data_sources = set(st.multiselect('Data sources', data_source_options, data_source_options))
-assert len(data_sources) > 0
 
-
-# Generally this is for scatterplots, but for one section we want a table with nearest neighbors
-if st.query_params.get('nn', False):
+if len(data_sources) == 0:
+    st.text('Select at least one data source')
+elif st.query_params.get('nn', False):
+    # Generally this is for scatterplots, but for one section we want a table with nearest neighbors
     entities, embeddings = get_data(entity_choice, data_sources, False)
     # Sort alphabetically by artist for a better UX
     order = np.argsort(entities.artist).values
