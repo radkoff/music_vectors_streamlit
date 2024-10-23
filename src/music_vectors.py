@@ -238,14 +238,16 @@ else:
     if include_clusters:
         tooltip.append('cluster')
 
-    encode_kwargs = dict(color='artist:N', tooltip=tooltip)
+    mobile = st.query_params.get('mobile', False)
+    color_encoding = alt.Color('artist:N').legend(orient='bottom', columns=2) if mobile else 'artist:N'
+    encode_kwargs = dict(color=color_encoding, tooltip=tooltip)
     if include_clusters:
         encode_kwargs['shape'] = 'cluster:N'
 
     alt.themes.enable('googlecharts')
 
     selection = alt.selection_point(fields=['artist'], bind='legend', empty=False, on='mouseover')
-    scatter = alt.Chart(entities, height=400).mark_point(filled=True).encode(
+    scatter = alt.Chart(entities, height=(500 if mobile else 400)).mark_point(filled=True).encode(
         alt.X('x').axis(None).scale(domain=(-.1, 1.1)),
         alt.Y('y').axis(None).scale(domain=(-.1, 1.1)),
         size=alt.condition(selection, alt.value(350), alt.value(150)),
