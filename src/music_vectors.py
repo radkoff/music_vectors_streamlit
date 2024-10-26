@@ -21,6 +21,11 @@ from src import rym_descriptors, utils
 EMB_PATH = project_root / 'data/blog_music_vectors.pkl'
 RANDOM_STATE = 0
 
+"""
+Query params have been added to support all the necessary views for the blog post --
+entity_choice, skip_data_sources, nn, skip_dim_reduction, cluster, mobile
+"""
+
 essentia_col_names = [
     'danceability', 'gender', 'mood_acoustic', 'mood_aggressive', 'mood_electronic', 'mood_happy', 'mood_party',
     'mood_relaxed', 'mood_sad', 'mirex_mood1', 'mirex_mood2', 'mirex_mood3', 'mirex_mood4', 'mirex_mood5', 'timbre',
@@ -28,7 +33,12 @@ essentia_col_names = [
 ]
 
 @st.cache_data
-def get_data(entity_choice, data_sources, distance_matrix: bool):
+def get_data(entity_choice: str, data_sources: list[str], distance_matrix: bool):
+    """
+    Returns a tuple of (DataFrame of track or album entities, vectors)
+    If `distance_matrix` is true, the returned vectors are pairwise distances instead of raw feature vectors.
+    The @st.cache_data decorator means streamlit with only have to run this once per argument combination.
+    """
     track_entities = pd.read_pickle(EMB_PATH)
     track_entities = track_entities[~track_entities.genre_embedding.isna()]
     if entity_choice == 'Tracks':
@@ -112,10 +122,19 @@ def get_data(entity_choice, data_sources, distance_matrix: bool):
         return entities, embeddings
 
 @st.cache_data
-def get_data_reduced(entity_choice, data_sources, dim_reduction, include_clusters, perplexity, n_neighbors):
-    # If we're using UMAP or TSNE, we'll compute distance matrices for each data source and average them
-    # If we're using PCA first, we'll scale each vector by its data source dimensionality, thus the return val here
-    #   is still the original feature matrix
+def get_data_reduced(
+        entity_choice: str, data_sources: list[str], dim_reduction: str, include_clusters: bool, perplexity: int,
+        n_neighbors: int
+):
+    """
+    Prepares a DataFrame of track or album entities, apt for scatterplots with X and Y coordinate projections and
+    optionally cluster IDs.
+
+    If we're using UMAP or TSNE, we'll compute distance matrices for each data source and average them
+    If we're using PCA first, we'll scale each vector by its data source dimensionality, thus the return val here
+      is still the original feature matrix.
+    The @st.cache_data decorator means streamlit with only have to run this once per argument combination.
+    """
     using_distance_matrices = 'PCA' not in dim_reduction
     dist_metric = 'precomputed' if using_distance_matrices else 'euclidean'
     entities, embeddings = get_data(entity_choice, data_sources, distance_matrix=using_distance_matrices)
@@ -143,6 +162,7 @@ def get_data_reduced(entity_choice, data_sources, dim_reduction, include_cluster
     projection = sklearn.preprocessing.minmax_scale(projection)
     entities['x'] = projection[:, 0]
     entities['y'] = projection[:, 1]
+    # For debugging
     entities['rounded_emb'] = embeddings.round(2).tolist()
 
     if include_clusters:
@@ -181,7 +201,7 @@ else:
 if len(data_sources) == 0:
     st.text('Select at least one data source')
 elif st.query_params.get('nn', False):
-    # Generally this is for scatterplots, but for one section we want a table with nearest neighbors
+    # Generally this is script is for scatterplots, but for one section we want a table with nearest neighbors
     entities, embeddings = get_data(entity_choice, data_sources, False)
     # Sort alphabetically by artist for a better UX
     order = np.argsort(entities.artist).values
