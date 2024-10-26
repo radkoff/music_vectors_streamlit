@@ -246,7 +246,9 @@ else:
 
     alt.themes.enable('googlecharts')
 
-    selection = alt.selection_point(fields=['artist'], bind='legend', empty=False, on='mouseover')
+    selection = alt.selection_point(
+        fields=['artist'], bind='legend', empty=False, on=('click' if mobile else 'mouseover')
+    )
     scatter = alt.Chart(entities, height=(500 if mobile else 400)).mark_point(filled=True).encode(
         alt.X('x').axis(None).scale(domain=(-.1, 1.1)),
         alt.Y('y').axis(None).scale(domain=(-.1, 1.1)),
