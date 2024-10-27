@@ -21,10 +21,8 @@ from src import rym_descriptors, utils
 EMB_PATH = project_root / 'data/blog_music_vectors.pkl'
 RANDOM_STATE = 0
 
-"""
-Query params have been added to support all the necessary views for the blog post --
-entity_choice, skip_data_sources, nn, skip_dim_reduction, cluster, mobile
-"""
+# Query params have been added to support all the necessary views for the blog post --
+# entity_choice, skip_data_sources, nn, skip_dim_reduction, cluster, mobile
 
 essentia_col_names = [
     'danceability', 'gender', 'mood_acoustic', 'mood_aggressive', 'mood_electronic', 'mood_happy', 'mood_party',
